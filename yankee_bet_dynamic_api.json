@@ -1,0 +1,160 @@
+{
+  "article": {
+    "title": "How to Place a Yankee Bet?",
+    "meta_description": "A Yankee bet is a multiple bet that consists of 11 bets involving 4 selections in different events. Learn how to place a Yankee bet.",
+    "sections": [
+      {
+        "heading": "What is a Yankee Bet?",
+        "content": [
+          "A Yankee bet is a combination of 11 separate bets placed on four different selections. The Yankee bet is rumored to be named after an American soldier who used this system to place a bet at a UK bookmaker and won a fortune off a small wager when all his selections won.",
+          "The four selections can be from the same sport or different sports, as long as they are not related or dependent on each other. For example, you can place a Yankee bet on four horses in four different races, or on four football teams in four different matches, or on a mix of sports, such as horse racing, football, tennis, and basketball.",
+          "The 11 bets that make up the Yankee bet are as follows:"
+        ],
+        "subsections": [
+          {
+            "subheading": "Bet Composition",
+            "content": [
+              "6 doubles: A double is a bet that combines two selections in a single bet. To win a double, both selections must win.",
+              "4 trebles: A treble is a bet that combines three selections in a single bet. To win a treble, all three selections must win.",
+              "1 four-fold accumulator: An accumulator combines all four selections in a single bet. To win the accumulator, all four selections must win."
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "How to Calculate the Payout of a Yankee Bet?",
+        "content": [
+          "The payout of a Yankee bet depends on the odds of each selection and the number of winning selections. The odds of each selection can be expressed in different formats, such as decimal, fractional, or American. For simplicity, we will use the decimal format in this article.",
+          "To calculate the payout of a Yankee bet, you need to follow these steps:"
+        ],
+        "subsections": [
+          {
+            "subheading": "Step 1: Calculate Individual Bet Payouts",
+            "content": [
+              "Calculate the payout of each individual bet by multiplying the stake amount by the odds of each selection. For example, if the stake amount is $10 and the odds of the four selections are 2.00, 3.00, 4.00, and 5.00, the payout of each individual bet is:"
+            ],
+            "bet_breakdown": {
+              "doubles": [
+                {
+                  "name": "Double 1 (Selection 1 and Selection 2)",
+                  "calculation": "$10 x 2.00 x 3.00",
+                  "payout": "$60"
+                },
+                {
+                  "name": "Double 2 (Selection 1 and Selection 3)",
+                  "calculation": "$10 x 2.00 x 4.00",
+                  "payout": "$80"
+                },
+                {
+                  "name": "Double 3 (Selection 1 and Selection 4)",
+                  "calculation": "$10 x 2.00 x 5.00",
+                  "payout": "$100"
+                },
+                {
+                  "name": "Double 4 (Selection 2 and Selection 3)",
+                  "calculation": "$10 x 3.00 x 4.00",
+                  "payout": "$120"
+                },
+                {
+                  "name": "Double 5 (Selection 2 and Selection 4)",
+                  "calculation": "$10 x 3.00 x 5.00",
+                  "payout": "$150"
+                },
+                {
+                  "name": "Double 6 (Selection 3 and Selection 4)",
+                  "calculation": "$10 x 4.00 x 5.00",
+                  "payout": "$200"
+                }
+              ],
+              "trebles": [
+                {
+                  "name": "Treble 1 (Selection 1, Selection 2, and Selection 3)",
+                  "calculation": "$10 x 2.00 x 3.00 x 4.00",
+                  "payout": "$240"
+                },
+                {
+                  "name": "Treble 2 (Selection 1, Selection 2, and Selection 4)",
+                  "calculation": "$10 x 2.00 x 3.00 x 5.00",
+                  "payout": "$300"
+                },
+                {
+                  "name": "Treble 3 (Selection 1, Selection 3, and Selection 4)",
+                  "calculation": "$10 x 2.00 x 4.00 x 5.00",
+                  "payout": "$400"
+                },
+                {
+                  "name": "Treble 4 (Selection 2, Selection 3, and Selection 4)",
+                  "calculation": "$10 x 3.00 x 4.00 x 5.00",
+                  "payout": "$600"
+                }
+              ],
+              "accumulator": [
+                {
+                  "name": "Four-fold accumulator (Selection 1, Selection 2, Selection 3, and Selection 4)",
+                  "calculation": "$10 x 2.00 x 3.00 x 4.00 x 5.00",
+                  "payout": "$1200"
+                }
+              ]
+            }
+          },
+          {
+            "subheading": "Step 2: Calculate Total Payout",
+            "content": [
+              "Add up the payout of the winning individual bets to get the total payout of the Yankee bet. For example, if all four selections win, the total payout of the Yankee bet is $3550."
+            ]
+          },
+          {
+            "subheading": "Step 3: Calculate Net Profit",
+            "content": [
+              "Subtract the total stake from the total payout to get the net profit of the Yankee bet. For example, if the total stake is $110 and the total payout is $3550, the net profit of the Yankee bet is $3440."
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "What Are the Benefits and Drawbacks of a Yankee Bet?",
+        "content": [
+          "A Yankee bet can have some benefits and drawbacks for your betting. Here are some of them:"
+        ],
+        "subsections": [
+          {
+            "subheading": "Benefits",
+            "content": [
+              "A Yankee bet can increase your chances of winning, as you can cover more than one outcome with a single bet. This can make your betting more enjoyable and less stressful, as you have more options and less risk of losing.",
+              "A Yankee bet can create more value and opportunities, as you can find more favorable lines and markets for your bet, especially if you have done your own research and analysis on the event or the team. You can also use a Yankee bet to hedge your bets or to create a middle, which is when you win both your Yankee bet and your original bet."
+            ]
+          },
+          {
+            "subheading": "Drawbacks",
+            "content": [
+              "A Yankee bet can decrease your payout, as you have to pay a premium for covering more than one outcome with a single bet. This can make your betting less profitable and more costly, as you have to bet more money to win the same amount or less.",
+              "A Yankee bet can be affected by unforeseen factors, such as injuries, weather, or referee decisions, that can affect the outcome of the event or the performance of the team. This can make your betting more unpredictable and frustrating, as you can lose your Yankee bet by a small margin or by a late score."
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "To Sum Up",
+        "content": [
+          "A Yankee bet is a type of multiple bet that consists of 11 bets involving 4 selections in different events. The 11 bets are 6 doubles, 4 trebles, and 1 four-fold accumulator. A Yankee bet can be a fun and profitable way to bet on various sports, such as horse racing, football, or tennis, as long as you know how to place it and what are the benefits and drawbacks of using it."
+        ]
+      }
+    ],
+    "summary": {
+      "total_bets": 11,
+      "required_selections": 4,
+      "minimum_winners_needed": 2,
+      "bet_types": {
+        "doubles": 6,
+        "trebles": 4,
+        "four_fold_accumulator": 1
+      },
+      "example_calculations": {
+        "stake_per_bet": 10,
+        "total_stake": 110,
+        "potential_total_payout": 3550,
+        "potential_net_profit": 3440
+      }
+    }
+  }
+}
