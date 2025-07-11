@@ -89,7 +89,7 @@ function extractSections($, node) {
   return sections.filter(
     (sec) =>
       sec.content.length &&
-      // sec.heading.toLowerCase() !== "introduction" &&
+      sec.heading.toLowerCase() !== "introduction" &&
       sec.heading.toLowerCase() !== "log in" && // Remove "log in" sections
       sec.heading.length < 120
   );

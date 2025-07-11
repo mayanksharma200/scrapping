@@ -1,5 +1,6 @@
 import React from "react";
 
+// Keywords to remove during cleanup
 const BOILERPLATE_KEYWORDS = [
   "QuizzesPRO Courses",
   "Hot Guides",
@@ -14,6 +15,8 @@ const BOILERPLATE_KEYWORDS = [
   "Pro Upgrade",
   "Forums",
   "RANDOM",
+  "X Research source",
+  "Advertisement",
 ];
 
 function removeBoilerplate(arr) {
