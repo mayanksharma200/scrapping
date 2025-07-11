@@ -1,9 +1,5 @@
 import React from "react";
-// import "./ArticleList.css";
 
-// --- Helpers ---
-
-// Known boilerplate/junk phrases to filter out
 const BOILERPLATE_KEYWORDS = [
   "QuizzesPRO Courses",
   "Hot Guides",
@@ -20,7 +16,6 @@ const BOILERPLATE_KEYWORDS = [
   "RANDOM",
 ];
 
-// Remove lines matching boilerplate
 function removeBoilerplate(arr) {
   return arr.filter(
     (item) =>
@@ -30,7 +25,6 @@ function removeBoilerplate(arr) {
   );
 }
 
-// Remove all duplicates in an array (global)
 function removeAllDuplicates(arr) {
   if (!Array.isArray(arr)) return [];
   const seen = new Set();
@@ -41,7 +35,6 @@ function removeAllDuplicates(arr) {
   });
 }
 
-// Group content for paragraphs/lists
 function groupContentBlocks(contentArr) {
   if (!Array.isArray(contentArr)) return [];
   const blocks = [];
@@ -51,9 +44,7 @@ function groupContentBlocks(contentArr) {
   for (let i = 0; i < contentArr.length; i++) {
     const item = contentArr[i] || "";
 
-    // Ordered list: "Step 1:" or "1." etc
     const isStep = /^Step\s*\d+[:.]?/i.test(item) || /^\d+\./.test(item);
-    // Unordered bullet: "•", "-"
     const isBullet = /^[•\-]/.test(item);
 
     if (isStep) {
@@ -87,27 +78,34 @@ function groupContentBlocks(contentArr) {
   return blocks;
 }
 
-// Renders each content block
 const renderBlock = (block, idx) => {
   switch (block.type) {
     case "ol":
       return (
-        <ol key={idx} style={{ paddingLeft: 24 }}>
+        <ol key={idx} className="list-decimal pl-6 mb-4">
           {block.items.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i} className="mb-2">
+              {item}
+            </li>
           ))}
         </ol>
       );
     case "ul":
       return (
-        <ul key={idx} style={{ paddingLeft: 24 }}>
+        <ul key={idx} className="list-disc pl-6 mb-4">
           {block.items.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i} className="mb-2">
+              {item}
+            </li>
           ))}
         </ul>
       );
     case "p":
-      return <p key={idx}>{block.text}</p>;
+      return (
+        <p key={idx} className="mb-4 text-gray-700">
+          {block.text}
+        </p>
+      );
     default:
       return <div key={idx}>{block.text}</div>;
   }
@@ -117,46 +115,34 @@ const ArticleList = ({ article }) => {
   if (!article) return <div>No article data available</div>;
 
   return (
-    <div className="article-content">
-      <h1 style={{ marginBottom: 8 }}>{article.title}</h1>
+    <div className="article-content text-gray-800">
+      <h1 className="text-3xl font-semibold text-indigo-600 mb-6">
+        {article.title}
+      </h1>
       {article.meta_description && (
-        <p
-          style={{
-            fontStyle: "italic",
-            color: "#f9429e",
-            marginBottom: 16,
-          }}
-        >
+        <p className="italic text-indigo-400 mb-6">
           {article.meta_description}
         </p>
       )}
 
       {Array.isArray(article.sections) &&
         article.sections.map((section, index) => {
-          // Clean section content before grouping
           let cleanContent = section.content || [];
           cleanContent = removeBoilerplate(cleanContent);
           cleanContent = removeAllDuplicates(cleanContent);
 
           return (
-            <section key={index} style={{ marginBottom: 32 }}>
-              <h2
-                style={{
-                  margin: "24px 0 8px 0",
-                  fontSize: "1.3em",
-                  color: "#f9429e",
-                }}
-              >
+            <section key={index} className="mb-8">
+              <h2 className="text-2xl text-indigo-600 mb-4">
                 {section.heading || section.title}
               </h2>
               {groupContentBlocks(cleanContent).map((block, i) =>
                 renderBlock(block, i)
               )}
-              {/* Subsections if present */}
               {section.subsections &&
                 section.subsections.map((subsection, j) => (
                   <div key={j}>
-                    <h3 style={{ marginTop: 12 }}>{subsection.subheading}</h3>
+                    <h3 className="text-xl mt-6">{subsection.subheading}</h3>
                     {groupContentBlocks(
                       removeAllDuplicates(removeBoilerplate(subsection.content))
                     ).map((block, k) => renderBlock(block, k))}
@@ -166,11 +152,10 @@ const ArticleList = ({ article }) => {
           );
         })}
 
-      {/* Summary (optional) */}
       {article.summary && (
         <section>
-          <h3 style={{ marginBottom: 8 }}>Summary:</h3>
-          <ul>
+          <h3 className="text-xl font-semibold mb-4">Summary:</h3>
+          <ul className="list-disc pl-6">
             <li>Total Sections: {article.summary.total_sections}</li>
             {article.summary.total_subsections !== undefined && (
               <li>Total Subsections: {article.summary.total_subsections}</li>

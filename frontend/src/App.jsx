@@ -4,7 +4,7 @@ import ArticleList from "./components/ArticleList";
 
 function App() {
   const [url, setUrl] = useState("");
-  const [article, setArticle] = useState(null); // Now holds the actual article object
+  const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
 
   const handleScrape = async () => {
@@ -19,7 +19,6 @@ function App() {
       const response = await axios.get(
         `${apiUrl}?url=${encodeURIComponent(url)}`
       );
-      // The API gives { article: {...}, ... }
       if (response.data && response.data.article) {
         setArticle(response.data.article);
         setError(null);
@@ -34,25 +33,30 @@ function App() {
   };
 
   return (
-    <div
-      className="App"
-      style={{ maxWidth: 900, margin: "0 auto", padding: 24 }}
-    >
-      <h1>Scrape Article</h1>
-      <div style={{ marginBottom: 16 }}>
-        <input
-          type="text"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="Enter article URL"
-          style={{ width: "60%", marginRight: 8, padding: 8 }}
-        />
-        <button onClick={handleScrape} style={{ padding: 8 }}>
-          Scrape
-        </button>
+    <div className="bg-white text-gray-800 min-h-screen flex flex-col items-center p-8">
+      <div className="w-full max-w-full bg-white rounded-xl shadow-xl p-6">
+        <h1 className="text-3xl font-semibold text-center text-indigo-600 mb-8">
+          Scrape Article
+        </h1>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 w-full">
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Enter article URL"
+            className="w-full sm:w-2/3 p-4 border-2 border-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-lg"
+          />
+          <button
+            onClick={handleScrape}
+            className="w-full sm:w-auto mt-4 sm:mt-0 bg-indigo-600 text-white py-3 px-8 rounded-xl hover:bg-indigo-700 transition-all duration-300"
+          >
+            Scrape
+          </button>
+        </div>
+
+        {error && <p className="text-red-500 text-center">{error}</p>}
+        {article && <ArticleList article={article} />}
       </div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {article && <ArticleList article={article} />}
     </div>
   );
 }
