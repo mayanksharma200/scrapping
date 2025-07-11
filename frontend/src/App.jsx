@@ -9,9 +9,14 @@ function App() {
 
   const handleScrape = async () => {
     try {
-      // Use relative API path, will be proxied in development by Vite
+      // Conditionally set API base URL based on the environment
+      const apiUrl =
+        process.env.NODE_ENV === "development"
+          ? "/api/articles"
+          : "https://scrapping-production-bf36.up.railway.app/api/articles"; // Full URL for production
+
       const response = await axios.get(
-        `/api/articles?url=${encodeURIComponent(url)}`
+        `${apiUrl}?url=${encodeURIComponent(url)}`
       );
       setArticles(response.data);
       setError(null);
