@@ -1,90 +1,184 @@
 import React from "react";
+// import "./ArticleList.css";
 
-// Function to render each type of content based on its tag
-const renderContent = (tag, content, key) => {
-  // Ensure content is always an array, even if it's a string
-  const contentArray = Array.isArray(content) ? content : [content];
+// --- Helpers ---
 
-  switch (tag) {
-    case "h1":
-      return contentArray.map((item, i) => <h1 key={`${key}-${i}`}>{item}</h1>);
-    case "h2":
-      return contentArray.map((item, i) => <h2 key={`${key}-${i}`}>{item}</h2>);
-    case "h3":
-      return contentArray.map((item, i) => <h3 key={`${key}-${i}`}>{item}</h3>);
-    case "p":
-      return contentArray.map((item, i) => <p key={`${key}-${i}`}>{item}</p>);
-    case "ul":
-      return (
-        <ul key={key}>
-          {contentArray.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
+// Known boilerplate/junk phrases to filter out
+const BOILERPLATE_KEYWORDS = [
+  "QuizzesPRO Courses",
+  "Hot Guides",
+  "Tech Help",
+  "Random Article",
+  "LOG IN",
+  "Community Dashboard",
+  "Personality Quizzes",
+  "Trivia Quizzes",
+  "Taylor Swift Quizzes",
+  "About wikiHow",
+  "Pro Upgrade",
+  "Forums",
+  "RANDOM",
+];
+
+// Remove lines matching boilerplate
+function removeBoilerplate(arr) {
+  return arr.filter(
+    (item) =>
+      item &&
+      item.trim().length > 0 &&
+      !BOILERPLATE_KEYWORDS.some((kw) => item.includes(kw))
+  );
+}
+
+// Remove all duplicates in an array (global)
+function removeAllDuplicates(arr) {
+  if (!Array.isArray(arr)) return [];
+  const seen = new Set();
+  return arr.filter((item) => {
+    if (seen.has(item)) return false;
+    seen.add(item);
+    return true;
+  });
+}
+
+// Group content for paragraphs/lists
+function groupContentBlocks(contentArr) {
+  if (!Array.isArray(contentArr)) return [];
+  const blocks = [];
+  let currentList = [];
+  let isOrderedList = false;
+
+  for (let i = 0; i < contentArr.length; i++) {
+    const item = contentArr[i] || "";
+
+    // Ordered list: "Step 1:" or "1." etc
+    const isStep = /^Step\s*\d+[:.]?/i.test(item) || /^\d+\./.test(item);
+    // Unordered bullet: "•", "-"
+    const isBullet = /^[•\-]/.test(item);
+
+    if (isStep) {
+      if (!isOrderedList) {
+        if (currentList.length) blocks.push({ type: "ul", items: currentList });
+        currentList = [];
+        isOrderedList = true;
+      }
+      currentList.push(
+        item.replace(/^Step\s*\d+[:.]?\s*/i, "").replace(/^\d+\.\s*/, "")
       );
+    } else if (isBullet) {
+      if (isOrderedList) {
+        if (currentList.length) blocks.push({ type: "ol", items: currentList });
+        currentList = [];
+        isOrderedList = false;
+      }
+      currentList.push(item.replace(/^[•\-]\s*/, ""));
+    } else {
+      if (currentList.length) {
+        blocks.push({ type: isOrderedList ? "ol" : "ul", items: currentList });
+        currentList = [];
+        isOrderedList = false;
+      }
+      if (item.trim()) blocks.push({ type: "p", text: item });
+    }
+  }
+  if (currentList.length) {
+    blocks.push({ type: isOrderedList ? "ol" : "ul", items: currentList });
+  }
+  return blocks;
+}
+
+// Renders each content block
+const renderBlock = (block, idx) => {
+  switch (block.type) {
     case "ol":
       return (
-        <ol key={key}>
-          {contentArray.map((item, index) => (
-            <li key={index}>{item}</li>
+        <ol key={idx} style={{ paddingLeft: 24 }}>
+          {block.items.map((item, i) => (
+            <li key={i}>{item}</li>
           ))}
         </ol>
       );
-    case "strong":
-      return contentArray.map((item, i) => (
-        <strong key={`${key}-${i}`}>{item}</strong>
-      ));
-    case "a":
-      return contentArray.map((item, i) => (
-        <a key={`${key}-${i}`} href={item}>
-          {item}
-        </a>
-      ));
+    case "ul":
+      return (
+        <ul key={idx} style={{ paddingLeft: 24 }}>
+          {block.items.map((item, i) => (
+            <li key={i}>{item}</li>
+          ))}
+        </ul>
+      );
+    case "p":
+      return <p key={idx}>{block.text}</p>;
     default:
-      return contentArray.map((item, i) => (
-        <div key={`${key}-${i}`}>{item}</div>
-      ));
+      return <div key={idx}>{block.text}</div>;
   }
 };
 
-const ArticleList = ({ articles }) => {
-  const { article } = articles;
-
-  if (!article) return null;
+const ArticleList = ({ article }) => {
+  if (!article) return <div>No article data available</div>;
 
   return (
-    <div>
-      <h1>{article.title}</h1>
-      <p>{article.meta_description}</p>
+    <div className="article-content">
+      <h1 style={{ marginBottom: 8 }}>{article.title}</h1>
+      {article.meta_description && (
+        <p
+          style={{
+            fontStyle: "italic",
+            color: "#f9429e",
+            marginBottom: 16,
+          }}
+        >
+          {article.meta_description}
+        </p>
+      )}
 
-      {article.sections.map((section, index) => (
-        <div key={index}>
-          <h2>{section.heading || section.title}</h2>
-          {section.content.map((content, i) => (
-            <div key={i}>{renderContent("p", content, `content-${i}`)}</div>
-          ))}
+      {Array.isArray(article.sections) &&
+        article.sections.map((section, index) => {
+          // Clean section content before grouping
+          let cleanContent = section.content || [];
+          cleanContent = removeBoilerplate(cleanContent);
+          cleanContent = removeAllDuplicates(cleanContent);
 
-          {/* Render subsections if available */}
-          {section.subsections &&
-            section.subsections.map((subsection, j) => (
-              <div key={j}>
-                <h3>{subsection.subheading}</h3>
-                {subsection.content.map((subContent, k) => (
-                  <div key={k}>
-                    {renderContent("p", subContent, `subContent-${k}`)}
+          return (
+            <section key={index} style={{ marginBottom: 32 }}>
+              <h2
+                style={{
+                  margin: "24px 0 8px 0",
+                  fontSize: "1.3em",
+                  color: "#f9429e",
+                }}
+              >
+                {section.heading || section.title}
+              </h2>
+              {groupContentBlocks(cleanContent).map((block, i) =>
+                renderBlock(block, i)
+              )}
+              {/* Subsections if present */}
+              {section.subsections &&
+                section.subsections.map((subsection, j) => (
+                  <div key={j}>
+                    <h3 style={{ marginTop: 12 }}>{subsection.subheading}</h3>
+                    {groupContentBlocks(
+                      removeAllDuplicates(removeBoilerplate(subsection.content))
+                    ).map((block, k) => renderBlock(block, k))}
                   </div>
                 ))}
-              </div>
-            ))}
-        </div>
-      ))}
+            </section>
+          );
+        })}
 
-      <h3>Summary:</h3>
-      <ul>
-        <li>Total Sections: {article.summary.total_sections}</li>
-        <li>Total Subsections: {article.summary.total_subsections}</li>
-        <li>Word Count Estimate: {article.summary.word_count_estimate}</li>
-      </ul>
+      {/* Summary (optional) */}
+      {article.summary && (
+        <section>
+          <h3 style={{ marginBottom: 8 }}>Summary:</h3>
+          <ul>
+            <li>Total Sections: {article.summary.total_sections}</li>
+            {article.summary.total_subsections !== undefined && (
+              <li>Total Subsections: {article.summary.total_subsections}</li>
+            )}
+            <li>Word Count Estimate: {article.summary.word_count_estimate}</li>
+          </ul>
+        </section>
+      )}
     </div>
   );
 };

@@ -1,185 +1,168 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
-// Function to scrape article content and structure it properly
-let titlehead = null;
+function cleanText(str) {
+  return str
+    .replace(/\s+/g, " ")
+    .replace(/function\s+\w+\(.*?\)\s*{[\s\S]*?}/g, "") // Remove inline JS functions
+    .replace(/WH\.\w+\([^)]+\);?/g, "") // Remove wikiHow's JS calls
+    .replace(/^\s*Download Article\s*/i, "") // Remove "Download Article" headings
+    .replace(/^[^a-zA-Z0-9]*$/, "") // Remove non-text junk lines
+    .replace(/\{.*?\}/g, "") // Remove template-like {var}
+    .replace(/<[^>]+>/g, "") // Remove any residual HTML tags
+    .replace(/Advertisement/g, "") // Remove 'Advertisement'
+    .trim();
+}
+
+// Remove scripts/styles/noscript and hidden nodes before main processing
+function removeJunkTags($) {
+  $(
+    "script, style, noscript, .hidden, [aria-hidden='true'], .ad, .advertisement"
+  ).remove();
+}
+
+// Find the main content container by comparing text length
+function findMainContainer($) {
+  const candidates = ["main", "article", "section", "body", "div"];
+  let maxLen = 0,
+    best = $("body");
+  candidates.forEach((sel) => {
+    $(sel).each((i, el) => {
+      const len = cleanText($(el).text()).length;
+      if (len > maxLen) {
+        maxLen = len;
+        best = $(el);
+      }
+    });
+  });
+  return best;
+}
+
+// Recursively collect sections
+function extractSections($, node) {
+  let sections = [];
+  let currentSection = { heading: "Introduction", content: [] };
+
+  function process(el) {
+    if (el.type === "tag") {
+      const tag = el.tagName.toLowerCase();
+      const text = cleanText($(el).text());
+      if (/^h[1-6]$/.test(tag)) {
+        if (currentSection.content.length) sections.push(currentSection);
+        currentSection = { heading: text, content: [] };
+      } else {
+        if ((tag === "ul" || tag === "ol") && $(el).find("li").length) {
+          $(el)
+            .find("li")
+            .each((i, li) => {
+              const t = cleanText($(li).text());
+              if (t.length > 0) currentSection.content.push(t);
+            });
+        } else if (["p", "div", "span", "li"].includes(tag)) {
+          // Post-clean filter for code/junk
+          if (
+            text.length > 20 &&
+            !/^\s*function\s*\w*\s*\(/.test(text) && // Remove lines starting with function
+            !/^\s*WH\.\w*\(/.test(text) && // Remove lines starting with WH.something
+            !/^\s*var /.test(text) && // Remove var statements
+            !/^\s*Download Article/i.test(text) && // Remove Download Article
+            !/<.*?>/.test(text) && // Remove HTML
+            !/log in/i.test(text) // Remove Log In
+          ) {
+            currentSection.content.push(text);
+          }
+        }
+        $(el)
+          .contents()
+          .each((i, child) => process(child));
+      }
+    }
+  }
+
+  $(node)
+    .contents()
+    .each((i, el) => process(el));
+
+  if (currentSection.content.length) sections.push(currentSection);
+
+  // Filter out sections with "Introduction" and clean unwanted sections
+  return sections.filter(
+    (sec) =>
+      sec.content.length &&
+      // sec.heading.toLowerCase() !== "introduction" &&
+      sec.heading.toLowerCase() !== "log in" && // Remove "log in" sections
+      sec.heading.length < 120
+  );
+}
+
 async function scrapeArticle(url) {
   try {
-    // Fetch the webpage content
-    const { data } = await axios.get(url);
+    const { data } = await axios.get(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      },
+    });
 
-    // Load the HTML into cheerio
     const $ = cheerio.load(data);
+    removeJunkTags($); // Clean before processing!
+    const main = findMainContainer($);
 
-    // Extract basic content
-    const title = extractTitle($);
-    titlehead = title;
-    const metaDescription = extractMetaDescription($);
-    const sections = extractSections($); // Extract sections dynamically
-    const summary = generateSummary(sections);
+    const title =
+      $("h1").first().text().trim() ||
+      $("title").text().trim() ||
+      "Untitled Article";
+    const metaDescription =
+      $('meta[name="description"]').attr("content") ||
+      $('meta[property="og:description"]').attr("content") ||
+      "";
 
-    // Structure the response in the desired format
+    const sections = extractSections($, main);
+
+    // Merge duplicate "Introduction" sections
+    if (
+      sections.length > 1 &&
+      sections[0].heading === "Introduction" &&
+      sections[1].heading === "Introduction"
+    ) {
+      sections[0].content.push(...sections[1].content);
+      sections.splice(1, 1);
+    }
+
+    const filteredSections = sections
+      .map((sec) => ({
+        heading: sec.heading,
+        content: sec.content.filter(
+          (c) =>
+            c.length > 20 &&
+            !/function\s*\w+\s*\(/.test(c) &&
+            !/WH\.\w+\(/.test(c) &&
+            !/^\s*Download Article/i.test(c)
+        ),
+      }))
+      .filter((sec) => sec.content.length);
+
+    const summary = {
+      total_sections: filteredSections.length,
+      word_count_estimate: filteredSections.reduce(
+        (acc, section) =>
+          acc + (section.content?.join(" ").split(/\s+/).length || 0),
+        0
+      ),
+    };
+
     return {
       article: {
         title,
         meta_description: metaDescription,
-        sections,
+        sections: filteredSections,
         summary,
       },
     };
   } catch (error) {
-    console.error("Error scraping the article:", error);
+    console.error("Error scraping the article:", error.message);
     return null;
   }
-}
-
-// Extract the main title
-function extractTitle($) {
-  const titleSelectors = [
-    "h1:first",
-    "title",
-    '[class*="title"]:first',
-    '[id*="title"]:first',
-  ];
-
-  for (const selector of titleSelectors) {
-    const element = $(selector).first();
-    if (element.length) {
-      const title = element.text().trim();
-      if (title && title.length > 5) {
-        return title;
-      }
-    }
-  }
-
-  return "Article Title";
-}
-
-// Extract meta description
-function extractMetaDescription($) {
-  const metaDesc =
-    $('meta[name="description"]').attr("content") ||
-    $('meta[property="og:description"]').attr("content") ||
-    "Article description";
-
-  return metaDesc.trim();
-}
-
-// Extract and organize content into sections dynamically
-function extractSections($) {
-  const sections = [];
-
-  // Fetch the first two paragraphs for the Title section
-  const paragraphs = $("p").get();
-  const firstParagraph = $(paragraphs[0]).text().trim();
-  const secondParagraph = $(paragraphs[1])
-    ? $(paragraphs[1]).text().trim()
-    : "";
-
-  // Add the Title section with the first two paragraphs
-  sections.push({
-    title: titlehead,
-    content: [firstParagraph, secondParagraph],
-  });
-
-  const headings = $("h2, h3, h4, h5, h6").get();
-
-  if (headings.length === 0) {
-    // If no headings found, create a single section with all paragraphs
-    const allParagraphs = $("p")
-      .get()
-      .map((p) => $(p).text().trim())
-      .filter((text) => text.length > 20);
-
-    if (allParagraphs.length > 0) {
-      sections.push({
-        heading: "Article Content",
-        content: allParagraphs,
-      });
-    }
-    return sections;
-  }
-
-  // Group content by headings
-  for (let i = 0; i < headings.length; i++) {
-    const heading = $(headings[i]);
-    const headingText = heading.text().trim();
-
-    if (!headingText || headingText.length < 3) continue;
-
-    const nextHeading = headings[i + 1];
-    let content = [];
-    let subsections = [];
-
-    let currentElement = heading.next();
-    while (
-      currentElement.length &&
-      (!nextHeading || !currentElement.is($(nextHeading)))
-    ) {
-      if (currentElement.is("p")) {
-        const text = currentElement.text().trim();
-        if (text && text.length > 20) content.push(text);
-      } else if (currentElement.is("h3, h4, h5, h6")) {
-        const subheadingText = currentElement.text().trim();
-        const subContent = [];
-
-        let subElement = currentElement.next();
-        while (subElement.length && !subElement.is("h2, h3, h4, h5, h6")) {
-          if (subElement.is("p")) {
-            const subText = subElement.text().trim();
-            if (subText && subText.length > 20) subContent.push(subText);
-          }
-          subElement = subElement.next();
-        }
-
-        if (subheadingText && subContent.length > 0) {
-          subsections.push({
-            subheading: subheadingText,
-            content: subContent,
-          });
-        }
-      } else if (currentElement.is("ul, ol")) {
-        const listItems = currentElement
-          .find("li")
-          .get()
-          .map((li) => $(li).text().trim())
-          .filter((text) => text.length > 10);
-        if (listItems.length > 0) content.push(...listItems);
-      }
-
-      currentElement = currentElement.next();
-    }
-
-    if (content.length > 0 || subsections.length > 0) {
-      sections.push({
-        heading: headingText,
-        content: content,
-        ...(subsections.length > 0 && { subsections }),
-      });
-    }
-  }
-
-  return sections;
-}
-
-// Generate a summary based on the extracted content
-function generateSummary(sections) {
-  return {
-    total_sections: sections.length,
-    total_subsections: sections.reduce(
-      (acc, section) => acc + (section.subsections?.length || 0),
-      0
-    ),
-    word_count_estimate: sections.reduce((acc, section) => {
-      const sectionWords = section.content.join(" ").split(" ").length;
-      const subsectionWords =
-        section.subsections?.reduce(
-          (subAcc, sub) => subAcc + sub.content.join(" ").split(" ").length,
-          0
-        ) || 0;
-      return acc + sectionWords + subsectionWords;
-    }, 0),
-  };
 }
 
 export default scrapeArticle;

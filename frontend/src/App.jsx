@@ -4,42 +4,55 @@ import ArticleList from "./components/ArticleList";
 
 function App() {
   const [url, setUrl] = useState("");
-  const [articles, setArticles] = useState(null);
+  const [article, setArticle] = useState(null); // Now holds the actual article object
   const [error, setError] = useState(null);
 
   const handleScrape = async () => {
+    setError(null);
+    setArticle(null);
     try {
-      // Conditionally set API base URL based on the environment
       const apiUrl =
         process.env.NODE_ENV === "development"
           ? "/api/articles"
-          : "https://scrapping-production-bf36.up.railway.app/api/articles"; // Full URL for production
+          : "https://scrapping-production-bf36.up.railway.app/api/articles";
 
       const response = await axios.get(
         `${apiUrl}?url=${encodeURIComponent(url)}`
       );
-      setArticles(response.data);
-      setError(null);
+      // The API gives { article: {...}, ... }
+      if (response.data && response.data.article) {
+        setArticle(response.data.article);
+        setError(null);
+      } else {
+        setError("No article data found in response.");
+        setArticle(null);
+      }
     } catch (err) {
       setError("Error fetching article data");
-      setArticles(null);
+      setArticle(null);
     }
   };
 
   return (
-    <div className="App">
+    <div
+      className="App"
+      style={{ maxWidth: 900, margin: "0 auto", padding: 24 }}
+    >
       <h1>Scrape Article</h1>
-      <input
-        type="text"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        placeholder="Enter article URL"
-      />
-      <button onClick={handleScrape}>Scrape</button>
-
-      {error && <p>{error}</p>}
-
-      {articles && <ArticleList articles={articles} />}
+      <div style={{ marginBottom: 16 }}>
+        <input
+          type="text"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="Enter article URL"
+          style={{ width: "60%", marginRight: 8, padding: 8 }}
+        />
+        <button onClick={handleScrape} style={{ padding: 8 }}>
+          Scrape
+        </button>
+      </div>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {article && <ArticleList article={article} />}
     </div>
   );
 }
