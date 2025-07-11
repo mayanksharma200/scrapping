@@ -1,4 +1,10 @@
-import scrapeArticle from "../scraper/scrapeArticle.js";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the directory name for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Function to validate URL to prevent SSRF attacks
 const isValidUrl = (url) => {
@@ -42,22 +48,33 @@ const isValidUrl = (url) => {
   }
 };
 
-// Function to handle scraping request
+// Function to load the complete article data from JSON file
+const loadArticleData = () => {
+  try {
+    // Path to the JSON file containing the complete article data
+    const jsonFilePath = path.join(__dirname, '../../yankee_bet_dynamic_api.json');
+    const jsonData = fs.readFileSync(jsonFilePath, 'utf8');
+    return JSON.parse(jsonData);
+  } catch (error) {
+    console.error('Error loading article data from JSON file:', error);
+    return null;
+  }
+};
+
+// Function to handle article data request
 export const getArticleData = async (req, res) => {
-  const url = req.query.url; // Get URL from query parameters
-  if (!url) {
-    return res.status(400).send("URL parameter is required");
+  try {
+    // Load the complete article data from the JSON file
+    const articleData = loadArticleData();
+    
+    if (articleData) {
+      return res.json(articleData); // Return the complete data
+    }
+    
+    // Fallback error response
+    res.status(500).send("Failed to load the article data");
+  } catch (error) {
+    console.error('Error in getArticleData:', error);
+    res.status(500).send("Internal server error");
   }
-
-  // Validate URL to prevent SSRF attacks
-  if (!isValidUrl(url)) {
-    return res.status(400).send("Invalid or potentially dangerous URL");
-  }
-
-  const articleData = await scrapeArticle(url);
-  if (articleData) {
-    return res.json(articleData); // Return the scraped data
-  }
-
-  res.status(500).send("Failed to scrape the article");
 };
