@@ -9,8 +9,9 @@ function App() {
 
   const handleScrape = async () => {
     try {
+      // Properly encode the URL parameter to handle special characters
       const response = await axios.get(
-        `http://localhost:5000/api/articles?url=${url}`
+        `http://localhost:5000/api/articles?url=${encodeURIComponent(url)}`
       );
       setArticles(response.data);
       setError(null);
