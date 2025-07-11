@@ -9,8 +9,9 @@ function App() {
 
   const handleScrape = async () => {
     try {
+      // Use relative API path, will be proxied in development by Vite
       const response = await axios.get(
-        `http://localhost:5000/api/articles?url=${url}`
+        `/api/articles?url=${encodeURIComponent(url)}`
       );
       setArticles(response.data);
       setError(null);
